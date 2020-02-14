@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "interledger-rs.name" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ include "interledger-rs.name" . }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ include "interledger-rs.name" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "interledger-rs.name" . }}
+    spec:
+      containers:
+      - command:
+        - /usr/local/bin/ilp-node
+        envFrom:
+        - configMapRef:
+            name: {{ include "interledger-rs.name" . }}-config
+        image: {{ .Values.image.repository }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        name: {{ .Values.image.name }}

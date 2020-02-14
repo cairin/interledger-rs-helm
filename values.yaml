@@ -1,0 +1,105 @@
+# Default values for interledger-rs.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# See https://github.com/interledger-rs/interledger-rs/blob/master/docs/configuration.md#configuration-parameters for details on config
+config:
+  # A secret seed that is used to generate STREAM secrets and used to encrypt sensitive data. This MUST NOT be changed after once you started up the node. You could use `openssl rand -hex 32` to generate one.
+  secret_seed: ''
+  # An arbitrary secret token that is used for authenticating against administrative operations over the node's HTTP API. It must be passed as a Bearer token.
+  admin_auth_token: ''
+  # The ILP address of your node. The format should conform to the RFC (https://github.com/interledger/rfcs/blob/master/0015-ilp-addresses/0015-ilp-addresses.md). If you are running a child node, you don't need to specify this.
+  ilp_address: test.my-node
+  # A URL of redis that the node connects to in order to store its data.
+  database_url: redis://:password@redis-master:port/
+  # A pair of an IP address and a port to listen for HTTP connections. This is used for the HTTP API, ILP over HTTP packets and BTP connections. ILP over HTTP is a means to transfer ILP packets instead of BTP connections.
+  http_server:
+    address: 127.0.0.1
+    port: 7770
+  # A pair of an IP address and a port to listen for connections from settlement engines. The address provides the Settlement Engine API.
+  settlement_api_bind_address: 127.0.0.1:7771
+  # When SPSP payments are sent to the root domain, the payment pointer is resolved to <domain>/.well-known/pay (if not provided, this endpoint will not be exposed). This value determines which account those payments will be sent to.
+  default_spsp_account: my_account
+  # Interval, defined in milliseconds, on which the node will broadcast routing information to other nodes using CCP. Defaults to 30000ms (30 seconds).
+  route_broadcast_interval: 30000
+  exchange_rate:
+    # Exchange rate API to poll for exchange rates. If this is not set, the node will not poll for rates and will instead use the rates set via the HTTP API. Note that CryptoCompare can also be used when the node is configured via a config file or stdin, because an API key must be provided to use that service. 
+    provider: CoinCap
+    # Interval, defined in milliseconds, on which the node will poll the provider (if specified) for exchange rates.
+    poll_interval: 60000
+    # Spread, as a fraction, to add on top of the exchange rate. This amount is kept as the node operator's profit, or may cover fluctuations in exchange rates. For example, take an incoming packet with an amount of 100. If the exchange rate is 1:0.5 and the spread is 0.01, the amount on the outgoing packet would be 198 (instead of 200 without the spread).
+    spread: 0.01
+  prometheus:
+    # IP address and port to host the Prometheus exporter on.
+    bind_address: 9654
+    # Amount of time, in milliseconds, that the node will collect data points for the Prometheus histograms. Defaults to 300000ms (5 minutes).
+    histogram_window: 300000
+    # Granularity, in milliseconds, that the node will use to roll off old data. For example, a value of 1000ms (1 second) would mean that the node forgets the oldest 1 second of histogram data points every second. Defaults to 10000ms (10 seconds).
+    histogram_granularity: 10000
+
+replicaCount: 1
+
+image:
+  repository: interledgerrs/ilp-node
+  pullPolicy: IfNotPresent
+  name: ilp-node-sha256
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name:
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  type: LoadBalancer
+  externalTrafficPolicy: Cluster
+  port: 80
+
+ingress:
+  enabled: false
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  hosts:
+    - host: chart-example.local
+      paths: []
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
